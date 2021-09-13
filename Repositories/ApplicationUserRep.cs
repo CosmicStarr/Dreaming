@@ -50,7 +50,12 @@ namespace Dreaming.Repositories
                 return null;
             }
             //Who the Application User Claims to be!
-            return Token(loginModelDTO);     
+            return Token(new LoginModelDTO
+            {
+                Email = loginModelDTO.Email,
+                Password = loginModelDTO.Password
+            });
+              
         }
 
         public string Token(LoginModelDTO loginModelDTO)

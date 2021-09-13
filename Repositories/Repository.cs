@@ -113,5 +113,9 @@ namespace DreamMore.Repositories
             dbSet.RemoveRange(entity);
         }
 
+        public void Update(T entity)
+        {
+            dbSet.Update(entity).State = EntityState.Modified;
+        }
     }
 }

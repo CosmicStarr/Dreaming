@@ -13,7 +13,7 @@ using Models.DTOs;
 
 namespace Dreaming.Controllers
 {
-    // [Authorize]
+   
     public class ProductsController : BaseController
     {
 
@@ -26,7 +26,7 @@ namespace Dreaming.Controllers
 
         }
 
-
+        [Cache(600)]
         [HttpGet("{Id}")]
         public async Task<ActionResult<ProductsDTO>> GetProduct(int Id)
         {
@@ -38,7 +38,7 @@ namespace Dreaming.Controllers
             }
             return Ok(data);
         }
-
+        // [Cache(600)]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductsDTO>>> GetAllProducts([FromQuery] Parms Parms)
         {   
@@ -48,7 +48,7 @@ namespace Dreaming.Controllers
             return Ok(nuData);
         }
 
-
+        [Cache(600)]
         [HttpGet("Category")]
         public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAllCategories()
         {
@@ -56,7 +56,7 @@ namespace Dreaming.Controllers
             var data = _mapper.Map<IEnumerable<Category>,IEnumerable<CategoryDTO>>(Catdata);
             return Ok(data);
         }
-
+        [Cache(600)]
         [HttpGet("Brand")]
         public async Task<ActionResult<IEnumerable<BrandDTO>>> GetBrands()
         {

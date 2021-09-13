@@ -1,41 +1,43 @@
 using System.Threading.Tasks;
+using AutoMapper;
 using Dreaming.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models;
+using Models.DTOs;
+using Models.ShoppingCart;
 
 namespace Dreaming.Controllers
 {
+ 
     public class ShoppingCartController : BaseController
     {
-        private readonly IShoppingCart _cart;
-       
-        public ShoppingCartController(IShoppingCart cart)
+      
+        private readonly IShoppingCart _cartRepository;
+        private readonly IMapper _mapper;
+
+        public ShoppingCartController(IShoppingCart cartRepository,IMapper mapper)
         {
-            _cart = cart;
+            _cartRepository = cartRepository;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<ShoppingCart>> GetShoppingCartById(string Id)
+        public async Task<ActionResult<ShoppingCart>> GetCartById(string Id)
         {
-            var obj = await _cart.GetCartAsync(Id);
-            if(obj == null)
-            {
-                return null;
-            }
-            return Ok(obj ?? new ShoppingCart(Id));
+            var Cart = await _cartRepository.GetCartAsync(Id);
+            return Ok(Cart ?? new ShoppingCart(Id));
         }
-
         [HttpPost]
-        public async Task<ActionResult<ShoppingCart>> UpdateCartAsync(ShoppingCart shoppingCart)
+        public async Task<ActionResult<ShoppingCart>> UpdateCart(ShoppingCart shoppingCart)
         {
-            var obj = await _cart.UpdateCartAsync(shoppingCart);
-            return Ok(obj);
+            var UpdatedCart = await _cartRepository.UpdateCartAsync(shoppingCart);
+            return Ok(UpdatedCart);
         }
-
         [HttpDelete]
-        public async Task DeleteCartAsync(string Id)
+        public async Task DeleteAsync(string Id)
         {
-            var obj = await _cart.DeleteCarteAsync(Id);
+            await _cartRepository.DeleteCartAsync(Id);
         }
     }
 }

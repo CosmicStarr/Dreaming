@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Dreaming.Data;
 using Microsoft.EntityFrameworkCore;
 using Models;
+using Models.ShoppingCart;
 using StackExchange.Redis;
 
 namespace Dreaming.Repositories
@@ -14,25 +15,24 @@ namespace Dreaming.Repositories
         private readonly IDatabase _data;
         public ShoppingCartRepository(IConnectionMultiplexer redis)
         {
-           
             _data = redis.GetDatabase();
         }
-        public async Task<bool> DeleteCarteAsync(string Id)
+        public async Task<bool> DeleteCartAsync(string CartId)
         {
-            return await _data.KeyDeleteAsync(Id);
+            return await _data.KeyDeleteAsync(CartId);
         }
 
-        public async Task<ShoppingCart> GetCartAsync(string Id)
+        public async Task<ShoppingCart> GetCartAsync(string CartId)
         {
-            var data = await _data.StringGetAsync(Id);
-            return data.IsNullOrEmpty ? null : JsonSerializer.Deserialize<ShoppingCart>(data);
+            var CartData = await _data.StringGetAsync(CartId);
+            return CartData.IsNullOrEmpty ? null : JsonSerializer.Deserialize<ShoppingCart>(CartData);
         }
 
-        public async Task<ShoppingCart> UpdateCartAsync(ShoppingCart shoppingCart)
+        public async Task<ShoppingCart> UpdateCartAsync(ShoppingCart Cart)
         {
-            var created = await _data.StringSetAsync(shoppingCart.ShopCartId,JsonSerializer.Serialize<ShoppingCart>(shoppingCart),TimeSpan.FromDays(10));
-            if(!created) return null;
-            return await GetCartAsync(shoppingCart.ShopCartId);
+            var UpdateCart = await _data.StringSetAsync(Cart.ShopCartId, JsonSerializer.Serialize(Cart));
+            if (!UpdateCart) return null;
+            return await GetCartAsync(Cart.ShopCartId);
         }
     }
 }

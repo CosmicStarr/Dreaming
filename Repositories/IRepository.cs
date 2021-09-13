@@ -25,5 +25,7 @@ namespace DreamMore.Repositories
         void Remove(T entity);
         void Remove(string Id);
         void RemoveRange(IEnumerable<T> entity);
+        void Update(T entity);
+
     }
 }

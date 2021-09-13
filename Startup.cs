@@ -1,14 +1,17 @@
 
+using System.IO;
 using Data;
 using Data.Extensions;
 using Dreaming.Data;
 using Dreaming.Extensions;
+using Dreaming.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Models;
@@ -43,12 +46,36 @@ namespace Dreaming
                 return ConnectionMultiplexer.Connect(config);
             });
        
-
+            services.AddScoped<IOrderRepository,OrderRepositiory>();
             services.AddControllers();
             services.AppServices(configuration);
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Dreaming", Version = "v1" });
+                 var SecuritySchema = new OpenApiSecurityScheme
+                {
+                    Description = "JWT Bearer Security",
+                    Name = "Json Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    Reference = new OpenApiReference
+                    {
+                        Id = "Bearer",
+                        Type = ReferenceType.SecurityScheme,
+                    }
+                };
+                c.AddSecurityDefinition("Bearer", SecuritySchema);
+                var SecurityRequirements = new OpenApiSecurityRequirement
+                {
+                    {
+                        SecuritySchema, new[]
+                        {
+                            "Bearer"
+                        }
+                    }
+                };
+                c.AddSecurityRequirement(SecurityRequirements);
             });
             services.AddCors(options =>
             {
@@ -73,13 +100,21 @@ namespace Dreaming
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(Directory.GetCurrentDirectory(),"Content")
+                ),RequestPath = "/content"
+            });
             app.UseCors();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseStaticFiles();
+    
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapFallbackToController("Index","FallBack");
             });
         }
     }

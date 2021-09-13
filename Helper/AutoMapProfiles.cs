@@ -1,7 +1,8 @@
 using AutoMapper;
 using Models;
-using Models.CreateOrder;
 using Models.DTOs;
+using Models.Order;
+using Models.ShoppingCart;
 
 namespace Dreaming.Helper
 {
@@ -9,16 +10,18 @@ namespace Dreaming.Helper
     {
         public AutoMapProfiles()
         {
-            CreateMap<OrderedItem,OrderItemDTO>().ForMember(d =>d.ItemId,m => m.MapFrom(s => s.Id))
-                                                 .ForMember(d =>d.Name,m =>m.MapFrom(s => s.ItemsOrdered.Name))
-                                                 .ForMember(d =>d.ImageUrl,m =>m.MapFrom(s => s.ItemsOrdered.ImageUrl));                                            
-            CreateMap<ActualOrder,OrderForClientToSeeDTO>().ForMember(d => d.DeliveryName,m =>m.MapFrom(s =>s.Delivery.Name))
-                                                           .ForMember(d => d.DeliveryPrice,m =>m.MapFrom(s =>s.Delivery.price))
-                                                           .ForMember(d => d.ID,m =>m.MapFrom(s =>s.ActualId))
-                                                           .ForMember(d => d.Total,m =>m.MapFrom(s =>s.GetTotal()));                                                     
-            CreateMap<Address,AddressDTO>().ReverseMap().ForMember(p => p.Id,m => m.MapFrom(s => s.AddressId));
+            CreateMap<ShoppingCart,ShoppingCartDTO>();
+            CreateMap<CartItems,CartItemsDTO>();
+            CreateMap<OrderItems, OrderItemDTO>()
+                .ForMember(d => d.ItemId, o=>o.MapFrom(s => s.ItemsOrdered.id))
+                .ForMember(d => d.Name, o=>o.MapFrom(s => s.ItemsOrdered.ProductItemName))
+                .ForMember(d => d.ImageUrl, o=>o.MapFrom(s => s.ItemsOrdered.ItemImageUrl));
+            CreateMap<Orders,ActualOrderDTO>().ForMember(d => d.Deliveries,m => m.MapFrom(s =>s.Deliveries.DeliveryId))
+                                              .ForMember(d => d.Total,m =>m.MapFrom(s => s.GetTotal()))
+                                              .ForMember(d => d.BuyerEmail,m =>m.MapFrom(s =>s.Email));                                        
+            CreateMap<Address,AddressDTO>().ReverseMap().ForMember(d => d.AddressId,m => m.MapFrom(s =>s.AddressId));
             CreateMap<Brand,BrandDTO>().ForMember(p =>p.BrandId,m =>m.MapFrom(s =>s.Id));
-            CreateMap<ApplicationUser,LoginModelDTO>().ForMember(p => p.Email,m => m.MapFrom(s => s.Email));
+            CreateMap<ApplicationUser,ActualOrderDTO>().ForMember(p => p.BuyerEmail,m => m.MapFrom(s => s.Email));
             CreateMap<LoginModel,LoginModelDTO>();
             CreateMap<RegisterModel,RegisterModelDTO>();
             CreateMap<Products,ProductsDTO>().ForMember(p =>p.ProductId,m => m.MapFrom(s => s.Id))

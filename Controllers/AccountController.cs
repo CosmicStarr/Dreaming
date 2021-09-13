@@ -1,13 +1,16 @@
 using System.Threading.Tasks;
 using AutoMapper;
+using Dreaming.Errors;
 using Dreaming.Extensions;
 using Dreaming.Repositories;
 using DreamMore.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.DTOs;
+using Models.Order;
 
 namespace Dreaming.Controllers
 {
@@ -18,26 +21,26 @@ namespace Dreaming.Controllers
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IApplicationUserRepository _applicationUserRepo;
+        private readonly SignInManager<ApplicationUser> _signManager;
 
-        public AccountController(IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUser> userManager, IApplicationUserRepository applicationUser)
+        public AccountController(IUnitOfWork unitOfWork,
+         IMapper mapper, 
+         UserManager<ApplicationUser> userManager, 
+         IApplicationUserRepository applicationUser,
+         SignInManager<ApplicationUser> signInManager)
         {
             _applicationUserRepo = applicationUser;
             _userManager = userManager;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _signManager = signInManager;
         }
 
         [HttpGet("Email")]
         public async Task<ActionResult<LoginModelDTO>> GetUser(string Email)
         {
             var user = await _userManager.FindByEmailAsync(Email);
-            var MappedUser = _mapper.Map<LoginModelDTO>(user);
-            return new LoginModelDTO
-            {
-                Email = user.Email,
-                token = _applicationUserRepo.Token(MappedUser)
-            };
-
+            return _mapper.Map<LoginModelDTO>(user);
         }
 
         [HttpPost("Register")]
@@ -56,19 +59,27 @@ namespace Dreaming.Controllers
         [HttpPost("Login")]
         public async Task<ActionResult<LoginModelDTO>> Login([FromBody]LoginModelDTO loginModelDTO)
         {
-            var userResult = await _applicationUserRepo.LoginAsync(loginModelDTO);
-            var Log = new LoginModel();
-            var MappedUser = _mapper.Map<LoginModel,LoginModelDTO>(Log);
-            if(string.IsNullOrEmpty(userResult))
-            {
-                return Unauthorized();
-            }
+            var user = await _applicationUserRepo.LoginAsync(loginModelDTO);
+            var logUser = new LoginModel();
+            var appUser = _mapper.Map<LoginModel,LoginModelDTO>(logUser);
+            if(appUser == null)   return Unauthorized();
             return new LoginModelDTO
             {
-                Email = loginModelDTO.Email,
-                Password = loginModelDTO.Password,
-                token = userResult
+              Email = loginModelDTO.Email,
+              Password = loginModelDTO.Password,
+              token = _applicationUserRepo.Token(loginModelDTO)  
             };
+
+        }
+
+        [HttpGet("Address")]
+        [Authorize]
+        public async Task<ActionResult<AddressDTO>> GetAddressAsync(int id)
+        {           
+            var userAdd = HttpContext.User.RetrieveEmail();
+            var obj = await _unitOfWork.Repository<Address>().GetFirstOrDefault(x => x.AddressId == id);
+            if(obj == null) return NotFound();
+            return _mapper.Map<Address,AddressDTO>(obj);
         }
 
         private async Task<bool> UserExist(string Username)

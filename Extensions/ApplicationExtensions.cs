@@ -15,9 +15,10 @@ namespace Data.Extensions
     {
         public static IServiceCollection AppServices(this IServiceCollection services,IConfiguration configuration)
         {
+            services.AddSingleton<IResponseCache,ResponseCache>();
             services.AddScoped<IUnitOfWork,UnitOfWork>();
-            services.AddScoped<IOrderRepository,OrderRepository>();
             services.AddScoped<IShoppingCart,ShoppingCartRepository>();
+            services.AddScoped<IPaymentService,PaymentService>();
             services.AddScoped<IApplicationUserRepository,ApplicationUserRep>();
             services.AddAutoMapper(typeof(AutoMapProfiles));
             services.Configure<ApiBehaviorOptions>(opt =>
